@@ -1,3 +1,7 @@
 /server
 /client
-/third_party/cjson/cJSON.o
+
+/events.db
+/events.db-*
+/tests/framing
+__pycache__/

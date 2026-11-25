@@ -1,0 +1,11 @@
+{
+    "C_Cpp.default.configurationProvider": "",
+    "C_Cpp.default.compilerPath": "/usr/bin/cc",
+    "C_Cpp.default.cStandard": "c11",
+    "C_Cpp.default.defines": ["_POSIX_C_SOURCE=200809L"],
+    "C_Cpp.default.includePath": [
+        "${workspaceFolder}/src",
+        "/opt/homebrew/opt/cjson/include/cjson",
+        "/opt/homebrew/opt/openssl@3/include"
+    ]
+}

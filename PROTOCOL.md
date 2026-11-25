@@ -19,7 +19,7 @@ Server chủ động gửi `notification` tới tài khoản liên quan đang đ
 {"type":"request","id":2,"op":"ACCEPT_INVITE","event_id":42}
 {"type":"response","id":2,"ok":true,"data":{}}
 {"type":"request","id":3,"op":"ACCEPT_INVITE","event_id":99}
-{"type":"response","id":3,"ok":false,"error":{"code":"NOT_FOUND","message":"Không tìm thấy lời mời đang chờ."}}
+{"type":"response","id":3,"ok":false,"error":{"code":"NOT_FOUND","message":"Account, event, or waitlist entry not found."}}
 ```
 
 ## Thao tác
@@ -38,7 +38,7 @@ Các trường trong bảng được đặt cùng cấp với `type`, `id` và `
 | `APPROVE_JOIN` | `event_id`, `username` của người gửi yêu cầu | Object rỗng |
 | `LIST_PENDING` | — | Mảng `invites` gồm các mục `event_id`, `from` và mảng `join_requests` gồm các mục `event_id`, `username` |
 
-`event_id` là số nguyên dương. Các trường nghiệp vụ còn lại là chuỗi. `starts_at` dùng ISO 8601 có múi giờ, ví dụ `2026-11-28T19:00:00+07:00`. `REGISTER` tạo tài khoản, còn `LOGIN` gắn tài khoản với kết nối hiện tại. Các thao tác sự kiện yêu cầu đăng nhập. Sau khi ngắt kết nối, client đăng nhập lại trên kết nối mới.
+`id`, `event_id` và cursor là các số nguyên dương tối đa 999.999.999.999.999 để biểu diễn chính xác trong JSON. Các trường nghiệp vụ còn lại là chuỗi. `starts_at` dùng ISO 8601 có múi giờ, ví dụ `2026-11-28T19:00:00+07:00`. `REGISTER` tạo tài khoản, còn `LOGIN` gắn tài khoản với kết nối hiện tại. Các thao tác sự kiện yêu cầu đăng nhập. Sau khi ngắt kết nối, client đăng nhập lại trên kết nối mới.
 
 ## Thông báo và lỗi
 
@@ -47,3 +47,10 @@ Các trường trong bảng được đặt cùng cấp với `type`, `id` và `
 - `INVALID_CREDENTIALS` cho thông tin đăng nhập sai. `AUTH_REQUIRED` cho thao tác sự kiện khi chưa đăng nhập.
 - `FORBIDDEN` khi tài khoản hiện tại thiếu quyền. `NOT_FOUND` khi tài khoản, sự kiện hoặc mục đang chờ cần xử lý không tồn tại.
 - `CONFLICT` khi tên tài khoản trùng hoặc trạng thái tham gia hiện tại không cho phép thao tác. `INTERNAL_ERROR` khi server gặp lỗi trong lúc xử lý.
+
+## Phân trang, phiên và gửi lại
+
+- `LIST_EVENTS`, `LIST_PENDING` và `LIST_PARTICIPANTS` nhận trường tùy chọn `after` là số nguyên dương. Trang đầu bỏ qua trường này. Khi còn dữ liệu, response có `data.next_cursor`. Gửi lại cùng lệnh với `after` bằng cursor vừa nhận. Các trang đọc trạng thái hiện tại, nên dữ liệu có thể thay đổi giữa hai lần đọc.
+- `LIST_PARTICIPANTS` yêu cầu `event_id`. Chỉ chủ sự kiện được xem. Mảng `participants` chứa các object có trường `username` của thành viên ở trạng thái `joined`.
+- `CREATE_EVENT` nhận thêm `creation_key` tùy chọn (1–128 byte). Cùng tài khoản, cùng khóa và cùng nội dung sẽ trả về cùng `event_id`, kể cả sau khi server khởi động lại. Dùng lại khóa với nội dung khác trả về `CONFLICT`. Mỗi yêu cầu bỏ qua khóa vẫn tạo một sự kiện mới.
+- Mỗi kết nối chỉ đăng nhập thành công một lần. `LOGIN` trên phiên đã đăng nhập trả về `CONFLICT`. Đổi tài khoản bằng cách mở kết nối mới.
